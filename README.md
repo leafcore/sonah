@@ -7,4 +7,3 @@ Python 3, Numpy, OpenCV 3.4.1, munkres(PIP).
 # Instructions
 Execute download_labeldata.sh to download all labeled debugging pictures. \\
 Check out the documentation in api/hackathon.py
-# sonah
