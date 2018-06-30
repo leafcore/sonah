@@ -74,6 +74,7 @@ class Solution(HackathonApi):
     def handleFrameForTaskB(self, frame, regionCoordinates):
         try:
             coordinates = list()
+            print(regionCoordinates)
             for point in regionCoordinates[0]["coordinates"]:
                 coordinates.append([point[0]*frame.shape[1], point[1]*frame.shape[0]])
             coordinates = np.int0(coordinates)
@@ -101,8 +102,10 @@ class Solution(HackathonApi):
             #plt.show()
 
             #cv2.imshow("shrunk", shrunk)
-            #qqqcv2.waitKey(0)
+            #cv2.waitKey(0)
             num, features = cv2.connectedComponents(255-shrunk)
+            #cv2.imshow("test", features)
+            #cv2.waitKey(0)
 
             plate = str()
             corners = list()
@@ -118,25 +121,26 @@ class Solution(HackathonApi):
 
             idx = np.argsort(corners[:,1])
             sorted_corners = corners[idx]
-
             for corner in sorted_corners:
                 minx = corner[0]-2
                 miny = corner[1]-2
                 maxx = corner[2]+2
                 maxy = corner[3]+2
+                print(minx, miny)
                 if minx < 0:
                     minx = 0
                 if miny < 0:
                     miny = 0
                 snip = features[minx:maxx, miny:maxy]
-
+                print(snip.shape)
                 if snip.shape[1] > snip.shape[0]:
                     continue
 
                 snip = cv2.erode(snip.astype(np.uint8), np.ones((5,5)), iterations=1)
-          
-                plt.imshow(snip)
-                plt.show()
+                print("here")
+                print(corner)
+                #plt.imshow(snip)
+                #plt.show()
 
                 im = Image.fromarray(np.uint8(snip/np.max(snip)*255))
                 tr = Tesseract(datadir="/usr/share/tessdata")
