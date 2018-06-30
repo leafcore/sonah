@@ -2,7 +2,7 @@
 from api.hackathon import HackathonApi, RunModes
 import os
 import time
-import cv2
+import cv2  
 import matplotlib.pyplot as plt
 from tesserwrap import Tesseract
 from PIL import Image
@@ -171,7 +171,7 @@ class MySolution(HackathonApi):
 
                 snip = cv2.erode(snip.astype(np.uint8), np.ones((5,5)), iterations=1)
                 im = Image.fromarray(np.uint8(snip))
-                tr = Tesseract(datadir="/usr/share/tessdata")
+                tr = Tesseract(datadir="/usr/share/tesseract-ocr/tessdata")
 
                 letter = tr.ocr_image(im).rstrip()
                 for l in letter:
