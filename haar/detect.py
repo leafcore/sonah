@@ -112,32 +112,32 @@ def plate_detection(folderpath, ncolor=50):
                 A2 = PolyArea(x2, y2)
 
                 # FILTER BY AREA
+
+                cv.drawContours(img, [approx], -1, 200, 3)
                 if A / A2 < 1.2:
                     rect = cv.minAreaRect(approx)
                     box = cv.boxPoints(rect)
                     box = np.int0(box)
                     edges = []
                     for i in range(len(box) - 1):
+                        #edges.append(np.linalg.norm(np.array([[box[i][0], box[i+1][1]], [box[i][1], box[i+1][1]]])))
                         edges.append(np.sqrt(np.power(box[i][0] - box[i + 1][0], 2) + np.power(
-                            box[i][0] - box[i + 1][0], 2)))
-                    edges.append(np.sqrt(np.power(box[3][0] - box[0][0], 2) + np.power(
-                            box[3][0] - box[0][0], 2)))
+                            box[i + 1][1] - box[i][1], 2)))
+                    edges.append(np.sqrt(np.power(box[2][0] - box[0][0], 2) + np.power(
+                            box[3][1] - box[0][1], 2)))
+
+
 
                     sorted_arr = sorted(edges, reverse=True)
 
-                    # check: if any edge == 0
-                    if True or len(np.array(edges).nonzero()[0]) == len(edges):
-                        # check: two largest edges approx same length
-                        if sorted_arr[0] / sorted_arr[1] < 1.05:
-                            # check: connected edges have larger different length
-                            if max(edges[0], edges[1]) / min(edges[0], edges[1]) > 3 and max(edges[2], edges[1]) / min(edges[2], edges[1]) > 3:
-                                # check: third larges edge much smaller
-                                candidates.append(pnts)
-                                if sorted_arr[1] / sorted_arr[2] > 2 and sorted_arr[1] / sorted_arr[3] > 2:
-                                    print(3)
-
-                                    cv.drawContours(img, [box], -1, 50, 3)
-                                    print(box)
+                    # check: two largest edges approx same length
+                    if sorted_arr[0] / sorted_arr[1] < 1.05:
+                        # check: connected edges have larger different length
+                        if max(edges[0], edges[1]) / min(edges[0], edges[1]) > 2 and max(edges[2], edges[1]) / min(edges[2], edges[1]) > 2:
+                            # check: third larges edge much smaller
+                            candidates.append(pnts)
+                            if sorted_arr[1] / sorted_arr[2] > 2:
+                                cv.drawContours(img, [box], -1, 50, 3)
 
         cv.imshow("Result", img)
         cv.waitKey(0)

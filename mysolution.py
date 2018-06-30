@@ -47,7 +47,7 @@ class MySolution(HackathonApi):
 
         scale = 1 + (len(img[0]) / 1500)
 
-        img = cv2.cv2tColor(img, cv2.COLOR_BGR2GRAY)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         img = cv2.GaussianBlur(img, (int(3), int(3)), 0)
         img = cv2.Sobel(img, -1, 1, 0)
 
@@ -118,8 +118,7 @@ class MySolution(HackathonApi):
 
                                     xlen = len(img[0])
                                     ylen = len(img)
-                                    box[:, 0] /= xlen
-                                    box[:, 1] /= ylen
+
                                     return box
 
 
