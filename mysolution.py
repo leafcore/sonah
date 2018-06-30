@@ -2,7 +2,7 @@
 from api.hackathon import HackathonApi, RunModes
 import os
 import time
-import cv2
+import cv2  
 import matplotlib.pyplot as plt
 from tesserwrap import Tesseract
 from PIL import Image
@@ -64,6 +64,7 @@ class MySolution(HackathonApi):
 
         # loop over our contours
         candidates = []
+        boxes = []
 
         for c in cnts:
             peri = cv2.arcLength(c, True)
@@ -96,33 +97,31 @@ class MySolution(HackathonApi):
                     edges = []
                     for i in range(len(box) - 1):
                         edges.append(np.sqrt(np.power(box[i][0] - box[i + 1][0], 2) + np.power(
-                            box[i][0] - box[i + 1][0], 2)))
-                    edges.append(np.sqrt(np.power(box[3][0] - box[0][0], 2) + np.power(
-                        box[3][0] - box[0][0], 2)))
+                            box[i + 1][1] - box[i][1], 2)))
+                    edges.append(np.sqrt(np.power(box[2][0] - box[0][0], 2) + np.power(
+                        box[3][1] - box[0][1], 2)))
 
                     sorted_arr = sorted(edges, reverse=True)
 
-                    # check: if any edge == 0
-                    if True or len(np.array(edges).nonzero()[0]) == len(edges):
-                        # check: two largest edges approx same length
-                        if sorted_arr[0] / sorted_arr[1] < 1.05:
-                            # check: connected edges have larger different length
-                            if max(edges[0], edges[1]) / min(edges[0], edges[1]) > 3 and max(edges[2], edges[1]) / min(
-                                    edges[2], edges[1]) > 3:
-                                # check: third larges edge much smaller
-                                candidates.append(pnts)
-                                if sorted_arr[1] / sorted_arr[2] > 2 and sorted_arr[1] / sorted_arr[3] > 2:
-                                    print(3)
+                    # check: two largest edges approx same length
+                    if sorted_arr[0] / sorted_arr[1] < 1.05:
+                        # check: connected edges have larger different length
+                        if max(edges[0], edges[1]) / min(edges[0], edges[1]) > 3 and max(edges[2], edges[1]) / min(
+                                edges[2], edges[1]) > 3:
+                            # check: third larges edge much smaller
+                            candidates.append(pnts)
+                            if sorted_arr[1] / sorted_arr[2] > 2 and sorted_arr[1] / sorted_arr[3] > 2:
 
-                                    cv2.drawContours(img, [box], -1, 50, 3)
+                                cv2.drawContours(img, [box], -1, 50, 3)
 
-                                    xlen = len(img[0])
-                                    ylen = len(img)
-
-                                    return box
+                                xlen = len(img[0])
+                                ylen = len(img)
+                                boxes.append(np.array([([d[0] / xlen, d[1] / ylen]) for d in box]))
+        return boxes
 
 
     def handleFrameForTaskB(self, frame, regionCoordinates):
+        
         try:
             coordinates = list()
             for point in regionCoordinates:
@@ -211,6 +210,7 @@ class MySolution(HackathonApi):
             else:
                 return plate
         except Exception as exception:
+        
             return None
 
 
