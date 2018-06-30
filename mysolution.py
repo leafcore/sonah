@@ -43,33 +43,33 @@ class MySolution(HackathonApi):
         ncolor = 50
 
         img = frame
-        img = cv.normalize(img, img, 0, 255, cv.NORM_MINMAX)
+        img = cv2.normalize(img, img, 0, 255, cv2.NORM_MINMAX)
 
         scale = 1 + (len(img[0]) / 1500)
 
-        img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-        img = cv.GaussianBlur(img, (int(3), int(3)), 0)
-        img = cv.Sobel(img, -1, 1, 0)
+        img = cv2.cv2tColor(img, cv2.COLOR_BGR2GRAY)
+        img = cv2.GaussianBlur(img, (int(3), int(3)), 0)
+        img = cv2.Sobel(img, -1, 1, 0)
 
         img = np.multiply(np.floor(np.divide(img, ncolor)), ncolor).astype(np.uint8)
-        h, img = cv.threshold(img, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+        h, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-        se = cv.getStructuringElement(cv.MORPH_RECT, (int(16 * scale), int(4 * scale)))
-        img = cv.morphologyEx(img, cv.MORPH_CLOSE, se)
+        se = cv2.getStructuringElement(cv2.MORPH_RECT, (int(16 * scale), int(4 * scale)))
+        img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, se)
 
-        el = cv.getStructuringElement(cv.MORPH_ELLIPSE, (int(5 * scale), int(5 * scale)))
-        img = cv.morphologyEx(img, cv.MORPH_OPEN, el)
+        el = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (int(5 * scale), int(5 * scale)))
+        img = cv2.morphologyEx(img, cv2.MORPH_OPEN, el)
 
-        (cont_img, cnts, hierarchy) = cv.findContours(img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+        (cont_img, cnts, hierarchy) = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
         # loop over our contours
         candidates = []
 
         for c in cnts:
-            peri = cv.arcLength(c, True)
-            approx = cv.approxPolyDP(c, 0.02 * peri, True)
+            peri = cv2.arcLength(c, True)
+            approx = cv2.approxPolyDP(c, 0.02 * peri, True)
             if len(approx) < 8 and len(approx) > 3:
-                pnts = cv.convexHull(approx)
+                pnts = cv2.convexHull(approx)
 
                 x = []
                 y = []
@@ -90,8 +90,8 @@ class MySolution(HackathonApi):
 
                 # FILTER BY AREA
                 if A / A2 < 1.2:
-                    rect = cv.minAreaRect(approx)
-                    box = cv.boxPoints(rect)
+                    rect = cv2.minAreaRect(approx)
+                    box = cv2.boxPoints(rect)
                     box = np.int0(box)
                     edges = []
                     for i in range(len(box) - 1):
@@ -114,7 +114,7 @@ class MySolution(HackathonApi):
                                 if sorted_arr[1] / sorted_arr[2] > 2 and sorted_arr[1] / sorted_arr[3] > 2:
                                     print(3)
 
-                                    cv.drawContours(img, [box], -1, 50, 3)
+                                    cv2.drawContours(img, [box], -1, 50, 3)
 
                                     xlen = len(img[0])
                                     ylen = len(img)
