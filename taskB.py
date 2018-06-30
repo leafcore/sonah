@@ -135,11 +135,9 @@ class Solution(HackathonApi):
 
                 snip = cv2.erode(snip.astype(np.uint8), np.ones((5,5)), iterations=1)
           
-                plt.imshow(snip)
-                plt.show()
 
                 im = Image.fromarray(np.uint8(snip/np.max(snip)*255))
-                tr = Tesseract(datadir="/usr/share/tessdata")
+                tr = Tesseract(datadir="/usr/share/tesseract-ocr/tessdata")
 
                 letter = tr.ocr_image(im).rstrip()
                 for l in letter:
@@ -194,7 +192,5 @@ if __name__ == "__main__":
         print(res)
     id = 16#2
     print(solution.handleFrameForTaskB(datasetWrapper.getFrame(id), datasetWrapper.getRois(id)))
-    plt.imshow(datasetWrapper.getFrame(id))
-    plt.show()
 
 

@@ -118,8 +118,7 @@ class MySolution(HackathonApi):
 
                                     xlen = len(img[0])
                                     ylen = len(img)
-                                    box[:, 0] /= xlen
-                                    box[:, 1] /= ylen
+                                    box = [[d[0] / xlen, d[1] / ylen] for d in box]
                                     return box
 
 
