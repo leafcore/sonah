@@ -47,7 +47,7 @@ class MySolution(HackathonApi):
 
         scale = 1 + (len(img[0]) / 1500)
 
-        img = cv2.cv2tColor(img, cv2.COLOR_BGR2GRAY)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         img = cv2.GaussianBlur(img, (int(3), int(3)), 0)
         img = cv2.Sobel(img, -1, 1, 0)
 
@@ -64,6 +64,7 @@ class MySolution(HackathonApi):
 
         # loop over our contours
         candidates = []
+        boxes = []
 
         for c in cnts:
             peri = cv2.arcLength(c, True)
@@ -112,17 +113,17 @@ class MySolution(HackathonApi):
                                 # check: third larges edge much smaller
                                 candidates.append(pnts)
                                 if sorted_arr[1] / sorted_arr[2] > 2 and sorted_arr[1] / sorted_arr[3] > 2:
-                                    print(3)
 
                                     cv2.drawContours(img, [box], -1, 50, 3)
 
                                     xlen = len(img[0])
                                     ylen = len(img)
-                                    box = [[d[0] / xlen, d[1] / ylen] for d in box]
-                                    return box
+                                    boxes.append(np.array([([d[0] / xlen, d[1] / ylen]) for d in box]))
+        return boxes
 
 
     def handleFrameForTaskB(self, frame, regionCoordinates):
+        
         try:
             coordinates = list()
             for point in regionCoordinates:
@@ -211,6 +212,7 @@ class MySolution(HackathonApi):
             else:
                 return plate
         except Exception as exception:
+        
             return None
 
 
