@@ -12,7 +12,6 @@ def PolyArea(x, y):
 def plate_detection(folderpath, ncolor=50):
     for fn in glob.glob(folderpath + "/*")[::]:
 
-        # sharpening
         img = cv.imread(fn)
         img = cv.normalize(img, img, 0, 255, cv.NORM_MINMAX)
         # kernel = np.array([[-1, 0, 1], [-2, 0, 2], [1, 0, 1]])
@@ -138,6 +137,7 @@ def plate_detection(folderpath, ncolor=50):
                                     print(3)
 
                                     cv.drawContours(img, [box], -1, 50, 3)
+                                    print(box)
 
         cv.imshow("Result", img)
         cv.waitKey(0)
