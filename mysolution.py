@@ -2,17 +2,17 @@
 from api.hackathon import HackathonApi, RunModes
 import os
 import time
-import hashlib
-import json
-import random
+import cv2
+import matplotlib.pyplot as plt
+from tesserwrap import Tesseract
+from PIL import Image
 import numpy as np
+import itertools
 
-import cv2 as cv
-
+from helper import four_point_transform
 
 def PolyArea(x, y):
     return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
-
 
 class MySolution(HackathonApi):
     """
@@ -123,23 +123,95 @@ class MySolution(HackathonApi):
 
 
     def handleFrameForTaskB(self, frame, regionCoordinates):
-        """
-        See the documentation in the parent class for a whole lot of information on this method.
+        try:
+            coordinates = list()
+            for point in regionCoordinates:
+                coordinates.append([point[0]*frame.shape[1], point[1]*frame.shape[0]])
+            coordinates = np.int0(coordinates)
+            frame = cv2.drawContours(frame, [coordinates], 0, (0, 255, 0), 2)
+            warped = four_point_transform(frame, coordinates)
+            shrunk = cv2.cvtColor(warped[:, int(warped.shape[1]/10):], cv2.COLOR_BGR2GRAY)
+            scale = 6
+            shrunk = cv2.resize(shrunk, (shrunk.shape[1]*scale,shrunk.shape[0]*scale), interpolation=cv2.INTER_CUBIC)
+            _, shrunk = cv2.threshold(shrunk, 100, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            shrunk = 255-cv2.dilate(255-shrunk, np.ones((1, 1)), iterations=1)
 
-        We will just stupidly return None here,
-        which basically stands for "I can't read this".
-        """
-        rng = random.Random()
-        m = hashlib.md5()
-        m.update(json.dumps(regionCoordinates.tolist()).encode())
-        rng.seed(m.hexdigest())
-        resultSet = [
-            None,
-            "AC-FT-774",
-            "MU-YG-728",
-            "HB-KZ-3124"
-        ]
-        return resultSet[int(((time.time() / 10.0) + rng.randrange(0, len(resultSet))) % len(resultSet))]
+            num, features = cv2.connectedComponents(255-shrunk)
+
+            plate = str()
+            corners = list()
+            for i in range(0, num):
+                area = np.sum((features==i))
+                if area > scale**2*2*25 and area < scale*4*500:
+                    rows = np.any(features == i, axis=1)
+                    cols = np.any(features == i, axis=0)
+                    rmin, rmax = np.where(rows)[0][[0, -1]]
+                    cmin, cmax = np.where(cols)[0][[0, -1]]
+                    corners.append([rmin, cmin, rmax, cmax])
+            corners = np.array(corners)
+
+            idx = np.argsort(corners[:,1])
+            sorted_corners = corners[idx]
+
+            for corner in sorted_corners:
+                minx = corner[0]-2
+                miny = corner[1]-2
+                maxx = corner[2]+2
+                maxy = corner[3]+2
+
+                if minx < 0:
+                    minx = 0
+                if miny < 0:
+                    miny = 0
+
+                snip = features[minx:maxx, miny:maxy]
+
+                if snip.shape[1] > snip.shape[0]:
+                    continue
+
+                snip = cv2.erode(snip.astype(np.uint8), np.ones((5,5)), iterations=1)
+                im = Image.fromarray(np.uint8(snip))
+                tr = Tesseract(datadir="/usr/share/tessdata")
+
+                letter = tr.ocr_image(im).rstrip()
+                for l in letter:
+                    if l.isalnum():
+                        letter = l
+                plate += letter.capitalize()
+
+            alphs = "".join(itertools.takewhile(str.isalpha, plate))
+            nums = plate[len(alphs):]
+
+            if len(alphs) == 2:
+                plate = alphs[0] + "-" + alphs[1] + "-" + nums
+            elif len(alphs) == 5:
+                plate = alphs[:3] + "-" + alphs[3:] + "-" + nums
+            else:
+                diffs = list()
+                alphscorners = sorted_corners[:len(alphs)]
+                for i in range(len(alphscorners)):
+                    if sorted_corners[i][1] == alphscorners[-1][1]:
+                        break
+                    diffs.append(sorted_corners[i+1][1]-sorted_corners[i][3])
+
+                cuts = np.array(diffs) > np.mean(diffs)
+                rev_cuts = cuts[::-1]
+                for i in range(len(cuts[::-1])):
+                    if (rev_cuts[i] == 1):
+                        alphs = alphs[:len(cuts)-i] + "-" + alphs[len(cuts)-i:]
+                plate = alphs + "-" + nums
+            if len(plate) < 5:
+                return None
+            elif len(plate) > 11:
+                return None
+            elif plate.count("-") > 2:
+                return None
+            elif plate.count("-") < 2:
+                return None
+            else:
+                return plate
+        except Exception as exception:
+            return None
 
 
 if __name__ == "__main__":
